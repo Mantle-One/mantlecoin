@@ -1,0 +1,92 @@
+#!/sbin/openrc-run
+
+# backward compatibility for existing gentoo layout 
+#
+if [ -d "/var/lib/mantle/.mantle" ]; then
+	MANTLED_DEFAULT_DATADIR="/var/lib/mantle/.mantle"
+else
+	MANTLED_DEFAULT_DATADIR="/var/lib/mantled"
+fi
+
+MANTLED_CONFIGFILE=${MANTLED_CONFIGFILE:-/etc/mantle/mantle.conf}
+MANTLED_PIDDIR=${MANTLED_PIDDIR:-/var/run/mantled}
+MANTLED_PIDFILE=${MANTLED_PIDFILE:-${MANTLED_PIDDIR}/mantled.pid}
+MANTLED_DATADIR=${MANTLED_DATADIR:-${MANTLED_DEFAULT_DATADIR}}
+MANTLED_USER=${MANTLED_USER:-${MANTLE_USER:-mantle}}
+MANTLED_GROUP=${MANTLED_GROUP:-mantle}
+MANTLED_BIN=${MANTLED_BIN:-/usr/bin/mantled}
+MANTLED_NICE=${MANTLED_NICE:-${NICELEVEL:-0}}
+MANTLED_OPTS="${MANTLED_OPTS:-${MANTLE_OPTS}}"
+
+name="Mantle Core Daemon"
+description="Mantle cryptocurrency P2P network daemon"
+
+command="/usr/bin/mantled"
+command_args="-pid=\"${MANTLED_PIDFILE}\" \
+		-conf=\"${MANTLED_CONFIGFILE}\" \
+		-datadir=\"${MANTLED_DATADIR}\" \
+		-daemon \
+		${MANTLED_OPTS}"
+
+required_files="${MANTLED_CONFIGFILE}"
+start_stop_daemon_args="-u ${MANTLED_USER} \
+			-N ${MANTLED_NICE} -w 2000"
+pidfile="${MANTLED_PIDFILE}"
+
+# The retry schedule to use when stopping the daemon. Could be either
+# a timeout in seconds or multiple signal/timeout pairs (like
+# "SIGKILL/180 SIGTERM/300")
+retry="${MANTLED_SIGTERM_TIMEOUT}"
+
+depend() {
+	need localmount net
+}
+
+# verify
+# 1) that the datadir exists and is writable (or create it)
+# 2) that a directory for the pid exists and is writable
+# 3) ownership and permissions on the config file
+start_pre() {
+	checkpath \
+	-d \
+	--mode 0750 \
+	--owner "${MANTLED_USER}:${MANTLED_GROUP}" \
+	"${MANTLED_DATADIR}"
+
+	checkpath \
+	-d \
+	--mode 0755 \
+	--owner "${MANTLED_USER}:${MANTLED_GROUP}" \
+	"${MANTLED_PIDDIR}"
+
+	checkpath -f \
+	-o ${MANTLED_USER}:${MANTLED_GROUP} \
+	-m 0660 \
+	${MANTLED_CONFIGFILE}
+
+	checkconfig || return 1
+}
+
+checkconfig()
+{
+	if ! grep -qs '^rpcpassword=' "${MANTLED_CONFIGFILE}" ; then
+		eerror ""
+		eerror "ERROR: You must set a secure rpcpassword to run mantled."
+		eerror "The setting must appear in ${MANTLED_CONFIGFILE}"
+		eerror ""
+		eerror "This password is security critical to securing wallets "
+		eerror "and must not be the same as the rpcuser setting."
+		eerror "You can generate a suitable random password using the following "
+		eerror "command from the shell:"
+		eerror ""
+		eerror "bash -c 'tr -dc a-zA-Z0-9 < /dev/urandom | head -c32 && echo'"
+		eerror ""
+		eerror "It is recommended that you also set alertnotify so you are "
+		eerror "notified of problems:"
+		eerror ""
+		eerror "ie: alertnotify=echo %%s | mail -s \"Mantle Alert\"" \
+			"admin@foo.com"
+		eerror ""
+		return 1
+	fi
+}
