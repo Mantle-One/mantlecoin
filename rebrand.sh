@@ -1,0 +1,10 @@
+find . -exec rename 's/mantle/mantle/' {} ";"
+find . -exec rename 's/mac/mac/' {} ";"
+
+find ./ -type f -readable -writable -exec sed -i "s/mantle/mantle/g" {} ";"
+find ./ -type f -readable -writable -exec sed -i "s/Mantle/Mantle/g" {} ";"
+find ./ -type f -readable -writable -exec sed -i "s/Mantle/Mantle/g" {} ";"
+find ./ -type f -readable -writable -exec sed -i "s/MANTLE/MANTLE/g" {} ";"
+find ./ -type f -readable -writable -exec sed -i "s/mantled/mantled/g" {} ";"
+find ./ -type f -readable -writable -exec sed -i "s/MAC/MAC/g" {} ";"
+find ./ -type f -readable -writable -exec sed -i "s/mac/mac/g" {} ";"

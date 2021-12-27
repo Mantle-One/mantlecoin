@@ -1,0 +1,33 @@
+# /etc/conf.d/mantled: config file for /etc/init.d/mantled
+
+# Config file location
+#MANTLED_CONFIGFILE="/etc/mantle/mantle.conf"
+
+# What directory to write pidfile to?  (created and owned by $MANTLED_USER)
+#MANTLED_PIDDIR="/var/run/mantled"
+
+# What filename to give the pidfile
+#MANTLED_PIDFILE="${MANTLED_PIDDIR}/mantled.pid"
+
+# Where to write mantled data (be mindful that the blockchain is large)
+#MANTLED_DATADIR="/var/lib/mantled"
+
+# User and group to own mantled process
+#MANTLED_USER="mantle"
+#MANTLED_GROUP="mantle"
+
+# Path to mantled executable
+#MANTLED_BIN="/usr/bin/mantled"
+
+# Nice value to run mantled under
+#MANTLED_NICE=0
+
+# Additional options (avoid -conf and -datadir, use flags above)
+#MANTLED_OPTS=""
+
+# The timeout in seconds OpenRC will wait for mantled to terminate
+# after a SIGTERM has been raised.
+# Note that this will be mapped as argument to start-stop-daemon's
+# '--retry' option, which means you can specify a retry schedule
+# here. For more information see man 8 start-stop-daemon.
+MANTLED_SIGTERM_TIMEOUT=600
